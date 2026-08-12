@@ -39,6 +39,10 @@ Ensure you have the [.NET SDK](https://dotnet.microsoft.com/download) installed 
    ```bash
    dotnet build
    ```
+   
+4. Download the required dictionary dataset (ignored by Git due to size limits):
+   ```powershell
+   Invoke-WebRequest -Uri "[https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt](https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt)" -OutFile "rockyou.txt"
 
 ##  Usage
 
