@@ -65,36 +65,36 @@ namespace PasswordChecker
     }
 
     public class DictionaryRule : IPasswordRule
-{
-    private readonly HashSet<string> _commonPasswords;
-
-    public DictionaryRule(string filePath)
     {
-        // The StringComparer ignores case, so "Admin" and "admin" both flag as bad
-        _commonPasswords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        
-        if (System.IO.File.Exists(filePath))
+        private readonly HashSet<string> _commonPasswords;
+
+        public DictionaryRule(string filePath)
         {
-            foreach (var line in System.IO.File.ReadLines(filePath))
+            // The StringComparer ignores case, so "Admin" and "admin" both flag as bad
+            _commonPasswords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        
+            if (System.IO.File.Exists(filePath))
             {
-                _commonPasswords.Add(line.Trim());
+                foreach (var line in System.IO.File.ReadLines(filePath))
+                {
+                    _commonPasswords.Add(line.Trim());
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[WARNING] Dictionary file not found at: {filePath}");
             }
         }
-        else
-        {
-            Console.WriteLine($"[WARNING] Dictionary file not found at: {filePath}");
-        }
-    }
 
-    public RuleResult Evaluate(string password)
-    {
-        if (_commonPasswords.Contains(password))
+        public RuleResult Evaluate(string password)
         {
-            return new RuleResult(false, -50, "CRITICAL: Password found in dictionary list!");
+            if (_commonPasswords.Contains(password))
+            {
+                return new RuleResult(false, -50, "CRITICAL: Password found in dictionary list!");
+            }
+            return new RuleResult(true, 10, "Password not found in known dictionary.");
         }
-        return new RuleResult(true, 10, "Password not found in known dictionary.");
     }
-}
 
     // 3. Core Engine
     public class PasswordAnalyzer
