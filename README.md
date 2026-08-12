@@ -6,9 +6,9 @@ Unlike traditional password validators that rely on outdated complexity rules, t
 
 ##  Features
 
-*   **Mathematical Entropy Calculation:** Computes the bits of entropy for a given string using `E = L * log2(R)`.
+*   **Mathematical Entropy Calculation:** Computes the bits of entropy for a given string using E = L * log2(R).
 *   **Global Breach Check (HIBP API):** Securely queries the *Have I Been Pwned* API using **k-Anonymity** (SHA-1 hashing) to check against billions of breached credentials without exposing the user's password.
-*   **Local Dictionary Check:** Utilizes a C# `HashSet` for highly optimized $O(1)$ time complexity lookups against local common password lists (e.g., `rockyou.txt`).
+*   **Local Dictionary Check:** Utilizes a C# `HashSet` for highly optimized O(1) time complexity lookups against local common password lists (e.g., `rockyou.txt`).
 *   **Modular Architecture:** Built using the **Strategy Design Pattern**, allowing new security rules to be injected without modifying the core engine.
 
 ##  Architecture 
@@ -26,5 +26,26 @@ This project utilizes strict Object-Oriented Programming (OOP) principles. The c
 Ensure you have the [.NET SDK](https://dotnet.microsoft.com/download) installed on your machine.
 
 1. Clone the repository:
-```bash
-git clone https://github.com/mollex-886/PasswordChecker.git
+   ```bash
+   git clone [https://github.com/mollex-886/PasswordChecker.git](https://github.com/mollex-886/PasswordChecker.git)
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd PasswordChecker
+   ```
+
+3. Build the project:
+   ```bash
+   dotnet build
+   ```
+
+##  Usage
+
+Run the application directly via the .NET CLI:
+
+   ```bash
+   dotnet run
+   ```
+
+When prompted, input the password you wish to evaluate. The tool will output a structured report detailing the entropy score and pass/fail metrics for each loaded rule.
