@@ -175,8 +175,8 @@ namespace PasswordChecker
     
             analyzer.AddRule(new LengthRule(minimumLength: 12));
             analyzer.AddRule(new EntropyRule());
-            analyzer.AddRule(new DictionaryRule("rockyou-sample.txt"));
-            analyzer.AddRule(new PwnedApiRule()); // <-- Added this so the API actually runs!
+            analyzer.AddRule(new DictionaryRule("rockyou.txt"));
+            analyzer.AddRule(new PwnedApiRule()); 
 
             Console.Write("Enter a password to test: ");
             string testPassword = Console.ReadLine() ?? "";
