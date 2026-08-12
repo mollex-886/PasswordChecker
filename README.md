@@ -26,19 +26,5 @@ This project utilizes strict Object-Oriented Programming (OOP) principles. The c
 Ensure you have the [.NET SDK](https://dotnet.microsoft.com/download) installed on your machine.
 
 1. Clone the repository:
-   git clone https://github.com/YourUsername/PasswordChecker.git
-2. Navigate to the project directory:
-bash
-cd PasswordChecker
-
-3. Build the project:
-bash
-dotnet build
-
-
-##  Usage
-
-Run the application directly via the .NET CLI:
-
-bash
-dotnet run
+```bash
+git clone https://github.com/mollex-886/PasswordChecker.git
