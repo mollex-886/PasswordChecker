@@ -64,6 +64,38 @@ namespace PasswordChecker
         }
     }
 
+    public class DictionaryRule : IPasswordRule
+{
+    private readonly HashSet<string> _commonPasswords;
+
+    public DictionaryRule(string filePath)
+    {
+        // The StringComparer ignores case, so "Admin" and "admin" both flag as bad
+        _commonPasswords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        
+        if (System.IO.File.Exists(filePath))
+        {
+            foreach (var line in System.IO.File.ReadLines(filePath))
+            {
+                _commonPasswords.Add(line.Trim());
+            }
+        }
+        else
+        {
+            Console.WriteLine($"[WARNING] Dictionary file not found at: {filePath}");
+        }
+    }
+
+    public RuleResult Evaluate(string password)
+    {
+        if (_commonPasswords.Contains(password))
+        {
+            return new RuleResult(false, -50, "CRITICAL: Password found in dictionary list!");
+        }
+        return new RuleResult(true, 10, "Password not found in known dictionary.");
+    }
+}
+
     // 3. Core Engine
     public class PasswordAnalyzer
     {
@@ -86,18 +118,24 @@ namespace PasswordChecker
     {
         static void Main(string[] args)
         {
+            // 1. Initialize the engine exactly once
             var analyzer = new PasswordAnalyzer();
+    
+            // 2. Add the three rules
             analyzer.AddRule(new LengthRule(minimumLength: 12));
             analyzer.AddRule(new EntropyRule());
+            analyzer.AddRule(new DictionaryRule("rockyou-sample.txt"));
 
             Console.Write("Enter a password to test: ");
-            string testPassword = Console.ReadLine();
+    
+            // 3. The ?? "" tells C# "if the input is null, just use an empty string" to fix the warnings
+            string testPassword = Console.ReadLine() ?? "";
 
             var results = analyzer.Analyze(testPassword);
 
             Console.WriteLine("\n--- Security Analysis Report ---");
             bool isSecure = true;
-            
+    
             foreach (var result in results)
             {
                 string status = result.IsPassed ? "[PASS]" : "[FAIL]";
