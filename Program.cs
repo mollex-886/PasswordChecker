@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace PasswordChecker
 {
@@ -70,7 +73,6 @@ namespace PasswordChecker
 
         public DictionaryRule(string filePath)
         {
-            // The StringComparer ignores case, so "Admin" and "admin" both flag as bad
             _commonPasswords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         
             if (System.IO.File.Exists(filePath))
@@ -96,15 +98,66 @@ namespace PasswordChecker
         }
     }
 
+    public class PwnedApiRule : IPasswordRule
+    {
+        private static readonly HttpClient client = new HttpClient();
+
+        public PwnedApiRule()
+        {
+            if (!client.DefaultRequestHeaders.Contains("User-Agent"))
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "CSharp-Security-Portfolio-Project");
+            }
+        } // <-- This was the missing bracket!
+
+        public RuleResult Evaluate(string password)
+        {
+            if (string.IsNullOrEmpty(password)) return new RuleResult(false, 0, "Empty password.");
+
+            // 1. Calculate the SHA-1 hash
+            string hash = ComputeSha1(password);
+            string prefix = hash.Substring(0, 5);
+            string suffix = hash.Substring(5);
+
+            try
+            {
+                // 2. Query the API securely using only the 5-character prefix
+                string url = $"https://api.pwnedpasswords.com/range/{prefix}";
+                string response = client.GetStringAsync(url).Result;
+
+                // 3. Search the returned list for our specific suffix
+                if (response.Contains(suffix))
+                {
+                    return new RuleResult(false, -100, "CRITICAL: Password found in global breached database (HIBP)!");
+                }
+                
+                return new RuleResult(true, 20, "Password is safe from known public breaches.");
+            }
+            catch (Exception ex)
+            {
+                return new RuleResult(true, 0, $"[API Skipped] Network error: {ex.Message}");
+            }
+        }
+
+        // Helper method to generate the SHA-1 hash
+        private string ComputeSha1(string input)
+        {
+            using (SHA1 sha1 = SHA1.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(input);
+                byte[] hash = sha1.ComputeHash(bytes);
+                return BitConverter.ToString(hash).Replace("-", "").ToUpper();
+            }
+        }
+    }
+
     // 3. Core Engine
     public class PasswordAnalyzer
     {
-        // The <IPasswordRule> tells C# exactly what is going inside this list
         private readonly List<IPasswordRule> _rules = new List<IPasswordRule>();
     
         public void AddRule(IPasswordRule rule) => _rules.Add(rule);
 
-        // The <RuleResult> tells C# what type of list is being returned
         public List<RuleResult> Analyze(string password)
         {
             var report = new List<RuleResult>();
@@ -118,17 +171,14 @@ namespace PasswordChecker
     {
         static void Main(string[] args)
         {
-            // 1. Initialize the engine exactly once
             var analyzer = new PasswordAnalyzer();
     
-            // 2. Add the three rules
             analyzer.AddRule(new LengthRule(minimumLength: 12));
             analyzer.AddRule(new EntropyRule());
             analyzer.AddRule(new DictionaryRule("rockyou-sample.txt"));
+            analyzer.AddRule(new PwnedApiRule()); // <-- Added this so the API actually runs!
 
             Console.Write("Enter a password to test: ");
-    
-            // 3. The ?? "" tells C# "if the input is null, just use an empty string" to fix the warnings
             string testPassword = Console.ReadLine() ?? "";
 
             var results = analyzer.Analyze(testPassword);
